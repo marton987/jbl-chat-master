@@ -17,10 +17,10 @@ This is a messaging startup project built with Django 3.2.8 and HTMX. The applic
 - [x] Home view and template (placeholder)
 - [x] Docker setup available
 - [x] Django REST Framework installed (available for future use)
+- [x] Message model (database schema)
 
 ### ❌ What Needs to Be Built
 
-- [ ] Message model (database schema)
 - [ ] User list view and template
 - [ ] Conversation view and template
 - [ ] Message sending functionality
@@ -31,11 +31,11 @@ This is a messaging startup project built with Django 3.2.8 and HTMX. The applic
 
 ### Step 1: Create the Message Model
 
-- [ ] Create a `Message` model with:
-  - [ ] `sender` (ForeignKey to User)
-  - [ ] `receiver` (ForeignKey to User)
-  - [ ] `content` (TextField)
-  - [ ] `timestamp` (DateTimeField with auto_now_add)
+- [x] Create a `Message` model with:
+  - [x] `sender` (ForeignKey to User)
+  - [x] `receiver` (ForeignKey to User)
+  - [x] `content` (TextField)
+  - [x] `timestamp` (DateTimeField with auto_now_add)
 
 ---
 
