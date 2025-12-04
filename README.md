@@ -41,9 +41,9 @@ This is a messaging startup project built with Django 3.2.8 and HTMX. The applic
 
 ### Step 2: Set Up Authentication
 
-- [ ] Implement login/logout views
-- [ ] Create login template
-- [ ] Add authentication decorators to protected views
+- [x] Implement login/logout views
+- [x] Create login template
+- [x] Add authentication decorators to protected views
 
 ---
 

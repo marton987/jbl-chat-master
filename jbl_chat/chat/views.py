@@ -1,8 +1,22 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-import datetime
+from django.views.generic import TemplateView
+from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
-def home(request):
+class HomeView(LoginRequiredMixin, TemplateView):
     """Home page with HTMX test interactions"""
-    return render(request, "chat/home.html")
+
+    template_name = "chat/home.html"
+
+
+class CustomLoginView(LoginView):
+    """Custom login view"""
+
+    template_name = "chat/login.html"
+    redirect_authenticated_user = True
+
+
+class CustomLogoutView(LogoutView):
+    """Custom logout view"""
+
+    pass
