@@ -1,0 +1,26 @@
+<form id="message-form"
+      hx-post="{% url 'chat:send_message' other_user.username %}"
+      hx-target="#message-list"
+      hx-swap="innerHTML"
+      hx-indicator="#message-form-indicator"
+      hx-trigger="submit, keydown[ctrlKey||metaKey && key==='Enter'] from:textarea[name='content']"
+      hx-on::after-request="if(event.detail.successful) { this.reset(); }">
+  {% csrf_token %}
+  <div class="form-control d-flex gap-2 p-0 align-items-stretch">
+    <div class="flex-grow-1 p-2">{{ message_form.content }}</div>
+    <button type="submit"
+            class="btn btn-primary px-4 rounded-0 rounded-end d-flex gap-2 justify-content-center align-items-center">
+      <span id="message-form-indicator"
+            class="d-none spinner-border text-white spinner-border-sm me-2"
+            role="status">
+        <span class="visually-hidden">Sending...</span>
+      </span>
+      <i class="bi bi-send"></i> <span>Send</span>
+    </button>
+  </div>
+  {% if message_form.content.errors %}
+    <div class="text-danger small mt-1">
+      {% for error in message_form.content.errors %}{{ error }}{% endfor %}
+    </div>
+  {% endif %}
+</form>

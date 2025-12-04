@@ -19,12 +19,12 @@ This is a messaging startup project built with Django 3.2.8 and HTMX. The applic
 - [x] Django REST Framework installed (available for future use)
 - [x] Message model (database schema)
 - [x] User list view and template
+- [x] Conversation view and template
+- [x] Message sending functionality
+- [x] Authentication/authorization
 
 ### ❌ What Needs to Be Built
 
-- [ ] Conversation view and template
-- [ ] Message sending functionality
-- [ ] Authentication/authorization
 - [ ] HTMX-powered dynamic interactions
 
 ## Step-by-Step Implementation Plan
@@ -68,11 +68,11 @@ This is a messaging startup project built with Django 3.2.8 and HTMX. The applic
 
 ### Step 5: Message Sending (User Story 3)
 
-- [ ] Create form for message input
-- [ ] Create view to handle POST requests for sending messages
-- [ ] Use HTMX to send messages without page reload
-- [ ] Update conversation view to show new messages immediately
-- [ ] Create message form partial template
+- [x] Create form for message input
+- [x] Create view to handle POST requests for sending messages
+- [x] Use HTMX to send messages without page reload
+- [x] Update conversation view to show new messages immediately
+- [x] Create message form partial template
 
 ---
 

@@ -62,3 +62,14 @@
 .message-bubble {
   max-width: 70%;
 }
+
+/* Message form indicator - show spinner during request */
+#message-form-indicator.htmx-request {
+  display: inline-block !important;
+}
+
+/* Hide icon and text when indicator is active */
+#message-form-indicator.htmx-request ~ i,
+#message-form-indicator.htmx-request ~ span:not(#message-form-indicator) {
+  display: none !important;
+}

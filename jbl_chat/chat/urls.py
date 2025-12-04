@@ -9,4 +9,9 @@ urlpatterns = [
     # Keep users/ as an alias for flexibility
     path("users/", views.HomeView.as_view(), name="user_list"),
     path("chat/<str:username>/", views.ConversationView.as_view(), name="conversation"),
+    path(
+        "chat/<str:username>/send/",
+        views.ConversationView.as_view(),
+        name="send_message",
+    ),
 ]

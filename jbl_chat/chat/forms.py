@@ -15,3 +15,19 @@ class UserSearchForm(forms.Form):
         ),
     )
 
+
+class MessageForm(forms.Form):
+    """Form for sending messages."""
+
+    content = forms.CharField(
+        max_length=1000,
+        required=True,
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control border-0 shadow-none p-0",
+                "placeholder": "Type your message...",
+                "rows": 3,
+                "style": "resize: none;",
+            }
+        ),
+    )
