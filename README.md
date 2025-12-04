@@ -18,10 +18,10 @@ This is a messaging startup project built with Django 3.2.8 and HTMX. The applic
 - [x] Docker setup available
 - [x] Django REST Framework installed (available for future use)
 - [x] Message model (database schema)
+- [x] User list view and template
 
 ### ❌ What Needs to Be Built
 
-- [ ] User list view and template
 - [ ] Conversation view and template
 - [ ] Message sending functionality
 - [ ] Authentication/authorization
@@ -49,10 +49,10 @@ This is a messaging startup project built with Django 3.2.8 and HTMX. The applic
 
 ### Step 3: User List View (User Story 1)
 
-- [ ] Create view to list all users (excluding current user)
-- [ ] Create template to display users
-- [ ] Use HTMX for dynamic loading if needed
-- [ ] Add navigation to conversations
+- [x] Create view to list all users (excluding current user)
+- [x] Create template to display users
+- [x] Use HTMX for dynamic loading if needed
+- [x] Add navigation to conversations
 
 ---
 

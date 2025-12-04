@@ -1,6 +1,47 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}
-    HTMX Test - JBL Chat
+  Users - JBL Chat
 {% endblock title %}
+{% block extra_css %}
+  <link href="{% static 'chat/css/custom.css' %}" rel="stylesheet" />
+{% endblock extra_css %}
 {% block content %}
+  <div class="row">
+    <div class="col-12">
+      <h1 class="mb-4">Users</h1>
+      <!-- Search Form -->
+      <div class="mb-4">
+        <div class="input-group">
+          <input type="text"
+                 name="search"
+                 id="id_search"
+                 class="form-control"
+                 placeholder="Search users..."
+                 value="{{ form.search.value|default:'' }}"
+                 hx-get="{% url 'chat:home' %}"
+                 hx-target="#user-list"
+                 hx-trigger="input changed delay:500ms"
+                 hx-indicator="#search-indicator, #user-list-container"
+                 hx-push-url="true"
+                 hx-include="[name='search']">
+          <span class="input-group-text" id="search-indicator">
+            <i class="bi bi-search"></i>
+            <span class="spinner-border spinner-border-sm text-primary d-none"
+                  role="status"
+                  aria-hidden="true"></span>
+          </span>
+        </div>
+      </div>
+      <!-- User List Container (will be updated via HTMX) -->
+      <div id="user-list-container">
+        <div id="user-list-indicator" class="text-center my-3">
+          <span class="spinner-border spinner-border-sm text-primary d-none"
+                role="status"
+                aria-hidden="true"></span>
+        </div>
+        <div id="user-list">{% include "chat/partials/_user_list.html" %}</div>
+      </div>
+    </div>
+  </div>
 {% endblock content %}

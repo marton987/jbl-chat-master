@@ -1,9 +1,25 @@
-/* HTMX indicator styles */
-.htmx-indicator {
-  opacity: 0;
-  transition: opacity 200ms ease-in;
+/* Search indicator - hide icon and show spinner during search */
+#search-indicator.htmx-request .bi-search {
+  display: none !important;
 }
 
-.htmx-request .htmx-indicator {
-  opacity: 1;
+#search-indicator.htmx-request .spinner-border {
+  display: inline-block !important;
+}
+
+/* Hide user list during search */
+#user-list-container.htmx-request #user-list {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* User list indicator - show spinner during pagination/user loading */
+#user-list-indicator.htmx-request .spinner-border {
+  display: inline-block !important;
+}
+
+/* Hide user list during pagination/user loading */
+#user-list-indicator.htmx-request ~ #user-list {
+  opacity: 0.5;
+  pointer-events: none;
 }

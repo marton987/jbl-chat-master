@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}
+    Conversation with {{ other_user.username }} - JBL Chat
+{% endblock title %}
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Conversation with {{ other_user.username }}</h1>
+                <a href="{% url 'chat:home' %}" class="btn btn-secondary">Back to Users</a>
+            </div>
+            <!-- Messages will be displayed here in Step 4 -->
+            <div id="message-list" class="mb-4">
+                <div class="alert alert-info">
+                    <p>Messages will be displayed here. This is a placeholder for Step 4.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
