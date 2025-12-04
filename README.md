@@ -1,17 +1,145 @@
 # jbl-chat
 
-Let's set the stage, you are the founder of this exciting new messaging startup, you are tasked with building the first version of a product that is aimed to evolve with feedback from the team and users.
+A Django-based messaging application using HTMX for dynamic, interactive frontend experiences.
 
-You're building the backend using Django, and your initial task is to leverage HTMX for interactive front-end experiences. With this first release, we want to deliver the following user stories:
+## Project Overview
 
-1. As a user, I want to see all other users on the platform.
-2. As a user, I want to view my conversation with another user.
-3. As a user, I want to be able to send messages to another user on the platform.
+This is a messaging startup project built with Django 3.2.8 and HTMX. The application allows users to view other users on the platform, view conversations, and send messages - all with seamless, dynamic interactions powered by HTMX.
 
-Given that this is your startup, you have the freedom to set up and utilize the practices that align with your goals. You can use any Python libraries or external tools that you prefer.
+## Current State
 
-We have provided a Django skeleton project along with Docker setup for your convenience. Feel free to utilize Docker for development or Python virtual environments for your local setup. Since managing user registration isn’t required for this assessment, you can create dummy users directly using the shell and implement session authentication.
+### ✅ What's Already Set Up
 
-Incorporating HTMX will allow you to create dynamic, interactive elements on the front end without needing to reload the page. We encourage you to think about how HTMX can enhance user interactions effectively.
+- [x] Django 3.2.8 project structure
+- [x] `chat` app created and configured
+- [x] Basic URL routing (`chat/urls.py` and main `urls.py`)
+- [x] Base template with Bootstrap 5 and HTMX included
+- [x] Home view and template (placeholder)
+- [x] Docker setup available
+- [x] Django REST Framework installed (available for future use)
 
-Happy coding!
+### ❌ What Needs to Be Built
+
+- [ ] Message model (database schema)
+- [ ] User list view and template
+- [ ] Conversation view and template
+- [ ] Message sending functionality
+- [ ] Authentication/authorization
+- [ ] HTMX-powered dynamic interactions
+
+## Step-by-Step Implementation Plan
+
+### Step 1: Create the Message Model
+
+- [ ] Create a `Message` model with:
+  - [ ] `sender` (ForeignKey to User)
+  - [ ] `receiver` (ForeignKey to User)
+  - [ ] `content` (TextField)
+  - [ ] `timestamp` (DateTimeField with auto_now_add)
+
+---
+
+### Step 2: Set Up Authentication
+
+- [ ] Implement login/logout views
+- [ ] Create login template
+- [ ] Add authentication decorators to protected views
+
+---
+
+### Step 3: User List View (User Story 1)
+
+- [ ] Create view to list all users (excluding current user)
+- [ ] Create template to display users
+- [ ] Use HTMX for dynamic loading if needed
+- [ ] Add navigation to conversations
+
+---
+
+### Step 4: Conversation View (User Story 2)
+
+- [ ] Create view to display conversation between current user and selected user
+- [ ] Query messages where current user is sender or receiver with selected user
+- [ ] Order messages by timestamp
+- [ ] Create template to display messages
+- [ ] Use HTMX to load messages dynamically
+
+---
+
+### Step 5: Message Sending (User Story 3)
+
+- [ ] Create form for message input
+- [ ] Create view to handle POST requests for sending messages
+- [ ] Use HTMX to send messages without page reload
+- [ ] Update conversation view to show new messages immediately
+- [ ] Create message form partial template
+
+---
+
+### Step 6: Enhance HTMX Interactions
+
+- [ ] Add polling for new messages
+- [ ] Improve user experience with loading indicators
+- [ ] Add smooth scrolling to latest message
+- [ ] Handle errors gracefully
+
+---
+
+### Step 7: Styling and Polish
+
+- [ ] Style message bubbles
+- [ ] Improve layout and spacing
+- [ ] Add responsive design considerations
+- [ ] Enhance visual hierarchy
+
+---
+
+## How to Run the Project
+
+### Using Docker (Recommended)
+
+```bash
+docker-compose up
+```
+
+The application will be available at `http://localhost:8000`
+
+---
+
+## Project Structure
+
+```
+jbl-chat/
+├── jbl_chat/
+│   ├── chat/
+│   │   ├── models.py          # Message model
+│   │   ├── views.py           # All views (user_list, conversation, send_message)
+│   │   ├── urls.py            # App URL patterns
+│   │   ├── templates/chat/    # HTML templates
+│   │   │   ├── base.html      # Base template (already exists)
+│   │   │   ├── home.html      # Home page
+│   │   │   ├── user_list.html # User list (to be created)
+│   │   │   ├── conversation.html # Conversation view (to be created)
+│   │   │   └── message_list.html  # Message list partial (to be created)
+│   │   └── static/chat/css/   # Custom CSS
+│   └── jbl_chat/
+│       ├── settings.py        # Django settings
+│       └── urls.py            # Main URL configuration
+├── requirements.txt           # Python dependencies
+├── Dockerfile                 # Docker configuration
+├── docker-compose.yml         # Docker Compose configuration
+├── ASSIGNMENT.md              # Original assignment requirements
+└── README.md                  # This file
+```
+
+---
+
+## Technology Stack
+
+- **Backend:** Django 3.2.8
+- **Frontend:** HTMX 2.0.8, Bootstrap 5.2.3
+- **Database:** SQLite (development)
+- **Authentication:** Django session authentication
+- **Containerization:** Docker & Docker Compose
+
+---
