@@ -1,59 +1,134 @@
-from django.views.generic import TemplateView
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import mixins
 from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.views.generic import TemplateView
 
 from .forms import UserSearchForm, MessageForm
-from .models import Message
+from .models import Message, Conversation
 
 
-class HomeView(mixins.LoginRequiredMixin, TemplateView):
-    """Home page - displays list of all users (excluding current user) with HTMX support"""
+@login_required
+def home(request):
+    """Simple home page - just renders the template"""
+    return render(request, "chat/home.html")
 
-    template_name = "chat/home.html"
-    partial_template = "chat/partials/_user_list.html"
+
+@login_required
+def user_list(request):
+    """Returns the user list partial for HTMX requests"""
+    search_query = request.GET.get("search", "").strip()
+    page_number = request.GET.get("page", 1)
     paginate_by = 5
 
-    def get_queryset(self):
-        """Get all users excluding the current user"""
-        search_query = self.request.GET.get("search", "").strip()
-        users = User.objects.exclude(id=self.request.user.id).order_by("username")
+    # Get all users excluding the current user
+    users = User.objects.exclude(id=request.user.id).order_by("username")
 
-        if search_query:
-            users = users.filter(username__icontains=search_query)
+    if search_query:
+        users = users.filter(username__icontains=search_query)
 
-        return users
+    # Paginate users
+    paginator = Paginator(users, paginate_by)
+    page_obj = paginator.get_page(page_number)
 
-    def get_context_data(self, **kwargs):
-        """Get context data for the template"""
-        context = super().get_context_data(**kwargs)
-        search_query = self.request.GET.get("search", "").strip()
-        page_number = self.request.GET.get("page", 1)
+    context = {
+        "users": page_obj,
+        "page_obj": page_obj,
+        "paginator": paginator,
+        "search_query": search_query,
+    }
 
-        # Get paginated users
-        users = self.get_queryset()
-        paginator = Paginator(users, self.paginate_by)
-        page_obj = paginator.get_page(page_number)
+    return render(request, "chat/partials/_user_list.html", context)
 
-        context["users"] = page_obj
-        context["page_obj"] = page_obj
-        context["paginator"] = paginator
-        context["form"] = UserSearchForm(initial={"search": search_query})
-        context["search_query"] = search_query
-        return context
 
-    def get(self, request, *args, **kwargs):
-        """Handle GET requests with HTMX support"""
-        context = self.get_context_data()
+@login_required
+def conversations(request):
+    """Returns the chats list partial for HTMX requests - shows users with conversations"""
+    page_number = request.GET.get("page", 1)
+    paginate_by = 5
+    current_user = request.user
 
-        # If it's an HTMX request, return the partial template
-        if request.htmx:
-            return render(request, self.partial_template, context)
+    # Get all conversations for the current user, ordered by last message timestamp
+    conversations = (
+        Conversation.get_conversations_for_user(current_user)
+        .filter(last_message_timestamp__isnull=False)
+        .order_by("-last_message_timestamp")
+    )
 
-        # Otherwise, return the full page template
-        return render(request, self.template_name, context)
+    # Paginate at database level
+    paginator = Paginator(conversations, paginate_by)
+    page_obj = paginator.get_page(page_number)
+
+    # Build chat list with other user info
+    chats = []
+    for conversation in page_obj:
+        other_user = conversation.get_other_user(current_user)
+        chats.append(
+            {
+                "user": other_user,
+                "latest_timestamp": conversation.last_message_timestamp,
+                "last_message": conversation.last_message,
+            }
+        )
+
+    context = {
+        "chats": chats,
+        "page_obj": page_obj,
+        "paginator": paginator,
+        "current_user": current_user,
+    }
+
+    return render(request, "chat/partials/_chats_list.html", context)
+
+
+@login_required
+def archive_conversation(request, username):
+    """Archive a conversation for the current user."""
+    if not request.htmx:
+        return render(request, "chat/home.html")
+
+    other_user = get_object_or_404(User, username=username)
+    conversation, _ = Conversation.get_or_create_conversation(request.user, other_user)
+    conversation.archive(request.user)
+
+    # Check if request came from conversation page or chats list
+    hx_target = request.headers.get("HX-Target", "")
+    if "chats-list" in hx_target or not hx_target:
+        # Return updated chats list
+        return conversations(request)
+    else:
+        # Return success response (button will update via HTMX)
+        from django.http import HttpResponse
+
+        return HttpResponse(status=204)  # No Content - HTMX will handle UI update
+
+
+@login_required
+def unarchive_conversation(request, username):
+    """Unarchive a conversation for the current user."""
+    if not request.htmx:
+        return render(request, "chat/home.html")
+
+    other_user = get_object_or_404(User, username=username)
+    conversation = get_object_or_404(
+        Conversation,
+        (Q(user1=request.user) & Q(user2=other_user))
+        | (Q(user1=other_user) & Q(user2=request.user)),
+    )
+    conversation.unarchive(request.user)
+
+    # Check if request came from conversation page or chats list
+    hx_target = request.headers.get("HX-Target", "")
+    if "chats-list" in hx_target or not hx_target:
+        # Return updated chats list
+        return conversations(request)
+    else:
+        # Return success response (button will update via HTMX)
+        from django.http import HttpResponse
+
+        return HttpResponse(status=204)  # No Content - HTMX will handle UI update
 
 
 class ConversationView(mixins.LoginRequiredMixin, TemplateView):
@@ -68,10 +143,12 @@ class ConversationView(mixins.LoginRequiredMixin, TemplateView):
     def get_queryset(self, other_user):
         """Get messages where current user is sender or receiver with selected user"""
         current_user = self.request.user
-        return Message.objects.filter(
-            (Q(sender=current_user) & Q(receiver=other_user))
-            | (Q(sender=other_user) & Q(receiver=current_user))
-        ).order_by(
+        # Get or create conversation to ensure it exists
+        conversation, _ = Conversation.get_or_create_conversation(
+            current_user, other_user
+        )
+        # Use conversation to filter messages (more efficient with index)
+        return Message.objects.filter(conversation=conversation).order_by(
             "-timestamp"
         )  # Newest first for pagination
 
@@ -91,6 +168,11 @@ class ConversationView(mixins.LoginRequiredMixin, TemplateView):
             username = kwargs.get("username")
             other_user = get_object_or_404(User, username=username)
 
+        # Get or create conversation
+        conversation, _ = Conversation.get_or_create_conversation(
+            self.request.user, other_user
+        )
+
         # Get paginated messages
         queryset = self.get_queryset(other_user)
         paginator = Paginator(queryset, self.paginate_by)
@@ -101,6 +183,8 @@ class ConversationView(mixins.LoginRequiredMixin, TemplateView):
             {
                 "other_user": other_user,
                 "current_user": self.request.user,
+                "conversation": conversation,
+                "is_archived": conversation.is_archived_by(self.request.user),
                 "messages": list(page_obj.object_list)[::-1],
                 "has_older_messages": page_obj.has_next(),
                 "next_page": (

@@ -73,3 +73,34 @@
 #message-form-indicator.htmx-request ~ span:not(#message-form-indicator) {
   display: none !important;
 }
+
+/* Contacts drawer styles */
+#contactsDrawer .offcanvas-body {
+  padding: 0;
+}
+
+/* Contacts search indicator - hide icon and show spinner during search */
+#contacts-search-icon.htmx-request {
+  display: none !important;
+}
+
+#contacts-search-spinner.htmx-request {
+  display: inline-block !important;
+}
+
+/* Contacts list indicator - show spinner during loading */
+#contacts-list-indicator.htmx-request .spinner-border {
+  display: inline-block !important;
+}
+
+/* Hide contacts list during loading - minimal CSS needed for HTMX parent selector */
+/* Bootstrap utilities (.opacity-50, .pe-none) can't be applied via parent selector */
+#contacts-list-container.htmx-request #contacts-list {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Note: Hover and active states are handled by Bootstrap's .list-group-item-action class */
+#contacts-list-container {
+  scroll-behavior: smooth;
+}

@@ -7,7 +7,30 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1>Conversation with @{{ other_user.username }}</h1>
-                <a href="{% url 'chat:home' %}" class="btn btn-secondary">Back to Users</a>
+                <div class="d-flex gap-2">
+                    {% if is_archived %}
+                        <button id="archive-btn"
+                                class="btn btn-outline-primary"
+                                hx-post="{% url 'chat:unarchive_conversation' other_user.username %}"
+                                hx-target="#chats-list"
+                                hx-swap="innerHTML"
+                                hx-on::after-request="window.location.reload()"
+                                title="Unarchive conversation">
+                            <i class="bi bi-archive"></i> Unarchive
+                        </button>
+                    {% else %}
+                        <button id="archive-btn"
+                                class="btn btn-outline-secondary"
+                                hx-post="{% url 'chat:archive_conversation' other_user.username %}"
+                                hx-target="#chats-list"
+                                hx-swap="innerHTML"
+                                hx-on::after-request="window.location.reload()"
+                                title="Archive conversation">
+                            <i class="bi bi-archive"></i> Archive
+                        </button>
+                    {% endif %}
+                    <a href="{% url 'chat:home' %}" class="btn btn-secondary">Back to Chats</a>
+                </div>
             </div>
             <!-- Messages container with HTMX for scroll-based pagination -->
             <div id="message-list-container" class="mb-4">

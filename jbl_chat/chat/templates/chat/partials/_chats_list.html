@@ -1,0 +1,47 @@
+{% if chats %}
+  <div class="list-group mb-3">
+    {% for chat in chats %}
+      <div class="list-group-item d-flex justify-content-between align-items-start">
+        <a href="{% url 'chat:conversation' chat.user.username %}"
+           class="flex-grow-1 text-decoration-none text-reset">
+          <div>
+            <h5 class="mb-1">@{{ chat.user.username }}</h5>
+            {% if chat.last_message %}
+              <p class="mb-1 text-muted small">
+                {% if chat.last_message.sender == current_user %}
+                  <strong>You:</strong>
+                {% else %}
+                  <strong>@{{ chat.last_message.sender.username }}:</strong>
+                {% endif %}
+                {{ chat.last_message.content|truncatewords:15 }}
+              </p>
+              <small class="text-muted">{{ chat.latest_timestamp|date:"M d, Y H:i" }}</small>
+            {% else %}
+              <small class="text-muted">No messages yet</small>
+            {% endif %}
+          </div>
+        </a>
+        <div class="d-flex align-items-center gap-2 ms-2">
+          <span class="badge bg-primary rounded-pill">
+            <i class="bi bi-chat-dots"></i>
+          </span>
+          <button class="btn btn-sm btn-outline-secondary"
+                  hx-post="{% url 'chat:archive_conversation' chat.user.username %}"
+                  hx-target="#chats-list"
+                  hx-swap="innerHTML"
+                  hx-indicator="#chats-list-indicator"
+                  title="Archive conversation">
+            <i class="bi bi-archive"></i>
+          </button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  <!-- Pagination -->
+  {% include "partials/_pagination.html" with url_name="chat:conversations" target_id="chats-list" indicator_id="chats-list-indicator" item_name="chats" %}
+{% else %}
+  <div class="alert alert-info" role="alert">
+    <h4 class="alert-heading">No conversations yet</h4>
+    <p class="mb-0">Start a conversation by sending a message to someone!</p>
+  </div>
+{% endif %}

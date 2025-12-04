@@ -33,10 +33,23 @@
   <body>
     <nav class="navbar bg-primary text-white mb-4">
       <div class="container d-flex align-items-center justify-content-between">
-        <a class="navbar-brand text-white" href="{% url 'chat:home' %}">JBL Chat</a>
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-outline-light btn-sm"
+                  type="button"
+                  data-bs-toggle="offcanvas"
+                  data-bs-target="#contactsDrawer"
+                  aria-controls="contactsDrawer"
+                  title="View contacts">
+            <i class="bi bi-people-fill"></i>
+            <span class="d-none d-md-inline ms-1">Contacts</span>
+          </button>
+          <a class="navbar-brand text-white" href="{% url 'chat:home' %}">JBL Chat</a>
+        </div>
         <div class="d-flex align-items-center justify-content-center">{% include "partials/_nav_user.html" %}</div>
       </div>
     </nav>
+    <!-- Contacts Drawer -->
+    {% include "partials/_contacts_drawer.html" %}
     <div class="container">
       {% block content %}
       {% endblock content %}

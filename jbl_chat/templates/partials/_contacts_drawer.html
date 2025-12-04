@@ -1,0 +1,61 @@
+<!-- Contacts Sidebar Drawer -->
+<div class="offcanvas offcanvas-start"
+     tabindex="-1"
+     id="contactsDrawer"
+     aria-labelledby="contactsDrawerLabel">
+  <div class="offcanvas-header border-bottom">
+    <h5 class="offcanvas-title" id="contactsDrawerLabel">
+      <i class="bi bi-people-fill me-2"></i>Contacts
+    </h5>
+    <button type="button"
+            class="btn-close"
+            data-bs-dismiss="offcanvas"
+            aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body p-0">
+    <!-- Search form -->
+    <div class="p-3 border-bottom bg-light">
+      <form hx-get="{% url 'chat:user_list' %}"
+            hx-target="#contacts-list"
+            hx-swap="innerHTML"
+            hx-indicator="#contacts-list-indicator"
+            hx-trigger="input changed delay:300ms, search"
+            id="contacts-search-form">
+        {% csrf_token %}
+        <div class="input-group" id="contacts-search-indicator">
+          <span class="input-group-text bg-white">
+            <i class="bi bi-search" id="contacts-search-icon"></i>
+            <div class="spinner-border spinner-border-sm text-primary d-none"
+                 id="contacts-search-spinner"
+                 role="status"
+                 aria-hidden="true"></div>
+          </span>
+          <input type="text"
+                 class="form-control"
+                 name="search"
+                 placeholder="Search contacts..."
+                 value="{{ search_query|default:'' }}"
+                 autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <!-- Contacts list container -->
+    <div id="contacts-list-container" class="position-relative" style="height: calc(100vh - 200px); overflow-y: auto;">
+      <div id="contacts-list-indicator" class="text-center p-3">
+        <div class="spinner-border spinner-border-sm text-primary htmx-indicator"
+             role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+      <div id="contacts-list"
+           hx-get="{% url 'chat:user_list' %}"
+           hx-trigger="load"
+           hx-target="this"
+           hx-swap="innerHTML"
+           hx-indicator="#contacts-list-indicator">
+        <!-- Contacts will be loaded here via HTMX -->
+      </div>
+    </div>
+  </div>
+</div>
+
