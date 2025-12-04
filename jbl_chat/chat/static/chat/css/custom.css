@@ -23,3 +23,42 @@
   opacity: 0.5;
   pointer-events: none;
 }
+
+/* Message scroll container - fixed height with scroll */
+.message-scroll-container {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  scroll-behavior: smooth;
+}
+
+/* Message list indicator - show spinner during loading */
+#message-list-indicator.htmx-request .spinner-border {
+  display: inline-block !important;
+}
+
+/* Load more button indicator - show spinner during request */
+.load-more-trigger.htmx-request .htmx-indicator {
+  display: inline-block !important;
+}
+
+/* Disable load more button during request */
+.load-more-trigger.htmx-request {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Load more button container styling */
+.load-more-container {
+  padding: 0.75rem 0;
+  margin-bottom: 1rem;
+}
+
+/* Message bubble max width */
+.message-bubble {
+  max-width: 70%;
+}

@@ -58,11 +58,11 @@ This is a messaging startup project built with Django 3.2.8 and HTMX. The applic
 
 ### Step 4: Conversation View (User Story 2)
 
-- [ ] Create view to display conversation between current user and selected user
-- [ ] Query messages where current user is sender or receiver with selected user
-- [ ] Order messages by timestamp
-- [ ] Create template to display messages
-- [ ] Use HTMX to load messages dynamically
+- [x] Create view to display conversation between current user and selected user
+- [x] Query messages where current user is sender or receiver with selected user
+- [x] Order messages by timestamp
+- [x] Create template to display messages
+- [x] Use HTMX to load messages dynamically
 
 ---
 

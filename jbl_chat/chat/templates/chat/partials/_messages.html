@@ -1,0 +1,27 @@
+{% if messages %}
+  <div class="messages-container">
+    <div id="load-more-button-container"
+         hx-swap-oob="innerHTML"
+         class="text-center py-2 mb-3 load-more-container">{% include "chat/partials/_load_more_button.html" %}</div>
+    {% for message in messages %}
+      <div class="message-item mb-3 {% if message.sender == current_user %}message-sent{% else %}message-received{% endif %}">
+        <div class="d-flex {% if message.sender == current_user %}justify-content-end{% else %}justify-content-start{% endif %}">
+          <div class="message-bubble {% if message.sender == current_user %}bg-primary text-white{% else %}bg-light border{% endif %} p-3 rounded-3 shadow-sm">
+            <div class="message-header mb-2">
+              <small class="{% if message.sender == current_user %}text-white-50{% else %}text-muted{% endif %}">
+                <strong>@{{ message.sender.username }}</strong>
+                <span class="ms-2">{{ message.timestamp|date:"M d, Y H:i" }}</span>
+              </small>
+            </div>
+            <div class="message-content">{{ message.content|linebreaks }}</div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info" role="alert">
+    <h4 class="alert-heading">No messages yet</h4>
+    <p class="mb-0">Start the conversation by sending a message to {{ other_user.username }}!</p>
+  </div>
+{% endif %}
