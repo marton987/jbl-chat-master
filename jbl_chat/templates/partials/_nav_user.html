@@ -1,0 +1,7 @@
+{% if user.is_authenticated %}
+  <span class="me-3">Hello, {{ user.username }}!</span>
+  <form method="post" action="{% url 'core:logout' %}" class="d-inline lh-1">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-link text-white p-0 border-0 text-decoration-none">Logout</button>
+  </form>
+{% endif %}

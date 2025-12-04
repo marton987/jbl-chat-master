@@ -1,0 +1,27 @@
+<div id="login-form-container">
+  {% include "partials/_messages.html" %}
+  <form hx-post="{% url 'core:login' %}"
+        hx-target="#login-form-container"
+        hx-swap="outerHTML">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="{{ form.username.id_for_label }}">Username</label>
+      <input type="text"
+             class="form-control"
+             id="{{ form.username.id_for_label }}"
+             name="{{ form.username.name }}"
+             required
+             autofocus>
+    </div>
+    <div class="mb-3">
+      <label for="{{ form.password.id_for_label }}">Password</label>
+      <input type="password"
+             class="form-control"
+             id="{{ form.password.id_for_label }}"
+             name="{{ form.password.name }}"
+             required>
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button>
+    <input type="hidden" name="next" value="{{ next }}">
+  </form>
+</div>
