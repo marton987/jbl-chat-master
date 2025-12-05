@@ -1,9 +1,8 @@
 {% if has_older_messages %}
   <button class="btn btn-outline-primary btn-sm load-more-trigger"
-          hx-post="{% url 'chat:conversation' other_user.username %}"
+          hx-get="{% url 'chat:load_more_messages' other_user.username %}?page={{ next_page }}"
           hx-target="#message-list"
           hx-swap="afterbegin"
-          hx-vals='{"page": {{ next_page }}, "csrfmiddlewaretoken": "{{ csrf_token }}" }'
           hx-indicator=".load-more-indicator">
     <span class="load-more-indicator htmx-indicator spinner-border spinner-border-sm me-2"
           role="status">

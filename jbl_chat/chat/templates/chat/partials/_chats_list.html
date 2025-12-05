@@ -30,6 +30,7 @@
                   hx-target="#chats-list"
                   hx-swap="innerHTML"
                   hx-indicator="#chats-list-indicator"
+                  hx-vals='{"csrfmiddlewaretoken": "{{ csrf_token }}"}'
                   title="Archive conversation">
             <i class="bi bi-archive"></i>
           </button>
@@ -41,7 +42,19 @@
   {% include "partials/_pagination.html" with url_name="chat:conversations" target_id="chats-list" indicator_id="chats-list-indicator" item_name="chats" %}
 {% else %}
   <div class="alert alert-info" role="alert">
-    <h4 class="alert-heading">No conversations yet</h4>
-    <p class="mb-0">Start a conversation by sending a message to someone!</p>
+    <h4 class="alert-heading">
+      {% if search_query %}
+        No conversations found
+      {% else %}
+        No conversations yet
+      {% endif %}
+    </h4>
+    <p class="mb-0">
+      {% if search_query %}
+        No conversations match your search criteria.
+      {% else %}
+        Start a conversation by sending a message to someone!
+      {% endif %}
+    </p>
   </div>
 {% endif %}

@@ -1,0 +1,29 @@
+{% if is_archived %}
+    <form id="archive-form"
+          hx-post="{% url 'chat:unarchive_conversation' other_user.username %}"
+          hx-target="#archive-form"
+          hx-swap="outerHTML"
+          class="d-inline">
+        {% csrf_token %}
+        <button id="archive-btn"
+                type="submit"
+                class="btn btn-outline-primary"
+                title="Unarchive conversation">
+            <i class="bi bi-archive"></i> Unarchive
+        </button>
+    </form>
+{% else %}
+    <form id="archive-form"
+          hx-post="{% url 'chat:archive_conversation' other_user.username %}"
+          hx-target="#archive-form"
+          hx-swap="outerHTML"
+          class="d-inline">
+        {% csrf_token %}
+        <button id="archive-btn"
+                type="submit"
+                class="btn btn-outline-secondary"
+                title="Archive conversation">
+            <i class="bi bi-archive"></i> Archive
+        </button>
+    </form>
+{% endif %}

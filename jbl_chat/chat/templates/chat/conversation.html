@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}
-    Conversation with {{ other_user.username }} - JBL Chat
+    Conversation with @{{ other_user.username }} - JBL Chat
 {% endblock title %}
 {% block content %}
     <div class="row">
@@ -8,27 +8,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1>Conversation with @{{ other_user.username }}</h1>
                 <div class="d-flex gap-2">
-                    {% if is_archived %}
-                        <button id="archive-btn"
-                                class="btn btn-outline-primary"
-                                hx-post="{% url 'chat:unarchive_conversation' other_user.username %}"
-                                hx-target="#chats-list"
-                                hx-swap="innerHTML"
-                                hx-on::after-request="window.location.reload()"
-                                title="Unarchive conversation">
-                            <i class="bi bi-archive"></i> Unarchive
-                        </button>
-                    {% else %}
-                        <button id="archive-btn"
-                                class="btn btn-outline-secondary"
-                                hx-post="{% url 'chat:archive_conversation' other_user.username %}"
-                                hx-target="#chats-list"
-                                hx-swap="innerHTML"
-                                hx-on::after-request="window.location.reload()"
-                                title="Archive conversation">
-                            <i class="bi bi-archive"></i> Archive
-                        </button>
-                    {% endif %}
+                    {% include "chat/partials/_archive_button.html" %}
                     <a href="{% url 'chat:home' %}" class="btn btn-secondary">Back to Chats</a>
                 </div>
             </div>
@@ -60,3 +40,53 @@
         </div>
     </div>
 {% endblock content %}
+{% block extra_js %}
+    <script>
+        // Function to scroll message container to bottom
+        function scrollToBottom() {
+            const scrollContainer = document.getElementById('message-scroll-container');
+            if (scrollContainer) {
+                scrollContainer.scrollTop = scrollContainer.scrollHeight;
+            }
+        }
+
+        // Listen for HTMX swaps to scroll message container
+        document.body.addEventListener('htmx:afterSwap', function(event) {
+            const target = event.detail.target;
+            if (!target) return;
+
+            // Check if swap was to messages-container, message-list, or a message-item
+            const isMessageSwap = 
+                target.classList.contains('messages-container') ||
+                target.id === 'message-list' ||
+                target.classList.contains('message-item') ||
+                (target.closest && (
+                    target.closest('.messages-container') || 
+                    target.closest('#message-list')
+                ));
+
+            if (isMessageSwap) {
+                // Use requestAnimationFrame for smoother scrolling
+                requestAnimationFrame(() => {
+                    setTimeout(scrollToBottom, 50);
+                });
+            }
+        });
+
+        // Listen for out-of-band swaps (for first message case)
+        document.body.addEventListener('htmx:oobAfterSwap', function(event) {
+            const target = event.detail.target;
+            if (target && target.id === 'message-list') {
+                requestAnimationFrame(() => {
+                    setTimeout(scrollToBottom, 100);
+                });
+            }
+        });
+
+        // Also scroll on initial page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait a bit for HTMX to load initial messages
+            setTimeout(scrollToBottom, 300);
+        });
+    </script>
+{% endblock extra_js %}

@@ -10,6 +10,28 @@
   <div class="row">
     <div class="col-12">
       <h1 class="mb-4">Chats</h1>
+      <!-- Search form -->
+      <div class="mb-3">
+        <form hx-get="{% url 'chat:conversations' %}"
+              hx-target="#chats-list"
+              hx-swap="innerHTML"
+              hx-indicator="#chats-list-indicator"
+              hx-trigger="input changed delay:300ms, search"
+              id="chats-search-form">
+          {% csrf_token %}
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-search"></i>
+            </span>
+            <input type="text"
+                   class="form-control"
+                   name="search"
+                   placeholder="Search conversations..."
+                   value="{{ search_query|default:'' }}"
+                   autocomplete="off">
+          </div>
+        </form>
+      </div>
       <!-- Chats List Container (will be updated via HTMX) -->
       <div id="chats-list-container">
         <div id="chats-list-indicator" class="text-center my-3">
@@ -18,12 +40,13 @@
                 aria-hidden="true"></span>
         </div>
         <div id="chats-list"
-             hx-get="{% url 'chat:conversations' %}"
-             hx-trigger="load"
-             hx-target="this"
-             hx-swap="innerHTML"
-             hx-indicator="#chats-list-indicator">
-          <!-- Chats list will be loaded here via HTMX -->
+             {% if not chats %}hx-get="{% url 'chat:conversations' %}" hx-trigger="load" hx-target="this" hx-swap="innerHTML" hx-indicator="#chats-list-indicator"{% endif %}>
+          {% if chats %}
+            <!-- Chats list rendered directly -->
+            {% include "chat/partials/_chats_list.html" %}
+          {% else %}
+            <!-- Chats list will be loaded here via HTMX -->
+          {% endif %}
         </div>
       </div>
     </div>

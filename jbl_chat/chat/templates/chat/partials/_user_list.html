@@ -3,8 +3,7 @@
     {% for user in users %}
       <a href="{% url 'chat:conversation' user.username %}"
          class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3"
-         hx-boost="true"
-         hx-on::htmx:after-request="if (event.detail.xhr.status === 200) { const drawer = bootstrap.Offcanvas.getInstance(document.getElementById('contactsDrawer')); if (drawer) drawer.hide(); }">
+         onclick="const drawer = bootstrap.Offcanvas.getInstance(document.getElementById('contactsDrawer')); if (drawer) drawer.hide();">
         <div class="flex-grow-1">
           <h6 class="mb-1 fw-semibold">@{{ user.username }}</h6>
           <small class="text-muted">{{ user.get_full_name|default:user.email|default:"No additional info" }}</small>
@@ -16,9 +15,7 @@
     {% endfor %}
   </div>
   <!-- Pagination -->
-  <div class="p-3 border-top">
-    {% include "partials/_pagination.html" with url_name="chat:user_list" target_id="contacts-list" indicator_id="contacts-list-indicator" item_name="users" %}
-  </div>
+  <div class="p-3 border-top">{% include "chat/partials/_user_list_pagination.html" %}</div>
 {% else %}
   <div class="alert alert-info m-3" role="alert">
     <h6 class="alert-heading">No users found</h6>

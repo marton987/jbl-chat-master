@@ -8,10 +8,15 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("users/", views.user_list, name="user_list"),
     path("chats/", views.conversations, name="conversations"),
-    path("chat/<str:username>/", views.ConversationView.as_view(), name="conversation"),
+    path("<str:username>/", views.conversation, name="conversation"),
+    path(
+        "chat/<str:username>/load-more/",
+        views.load_more_messages,
+        name="load_more_messages",
+    ),
     path(
         "chat/<str:username>/send/",
-        views.ConversationView.as_view(),
+        views.send_message,
         name="send_message",
     ),
     path(
