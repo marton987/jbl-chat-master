@@ -48,12 +48,12 @@
         <div class="d-flex align-items-center justify-content-center">{% include "partials/_nav_user.html" %}</div>
       </div>
     </nav>
-    <!-- Contacts Drawer -->
-    {% include "partials/_contacts_drawer.html" %}
     <div class="container">
       {% block content %}
       {% endblock content %}
     </div>
+    {% block drawer %}
+    {% endblock drawer %}
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"
             integrity="sha256-ew8UiV1pJH/YjpOEBInP1HxVvT/SfrCmwSoUzF9JIgc="

@@ -39,16 +39,28 @@
                 role="status"
                 aria-hidden="true"></span>
         </div>
-        <div id="chats-list"
-             {% if not chats %}hx-get="{% url 'chat:conversations' %}" hx-trigger="load" hx-target="this" hx-swap="innerHTML" hx-indicator="#chats-list-indicator"{% endif %}>
+        <div id="chats-list">
           {% if chats %}
             <!-- Chats list rendered directly -->
             {% include "chat/partials/_chats_list.html" %}
           {% else %}
             <!-- Chats list will be loaded here via HTMX -->
+            <div class="text-center text-muted">Loading conversations...</div>
           {% endif %}
         </div>
+        {% if not chats %}
+          <!-- HTMX trigger element (only when chats not in context) -->
+          <div hx-get="{% url 'chat:conversations' %}"
+               hx-trigger="load"
+               hx-target="#chats-list"
+               hx-swap="innerHTML"
+               hx-indicator="#chats-list-indicator"
+               class="d-none"></div>
+        {% endif %}
       </div>
     </div>
   </div>
 {% endblock content %}
+{% block drawer %}
+  {% include "chat/partials/_contacts_drawer.html" %}
+{% endblock drawer %}

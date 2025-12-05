@@ -40,6 +40,9 @@
         </div>
     </div>
 {% endblock content %}
+{% block drawer %}
+    {% include "chat/partials/_contacts_drawer.html" %}
+{% endblock drawer %}
 {% block extra_js %}
     <script>
         // Function to scroll message container to bottom
