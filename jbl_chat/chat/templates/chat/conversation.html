@@ -56,19 +56,23 @@
         // Listen for HTMX swaps to scroll message container
         document.body.addEventListener('htmx:afterSwap', function(event) {
             const target = event.detail.target;
+            const trigger = event.detail.elt;
             if (!target) return;
 
-            // Check if swap was to messages-container, message-list, or a message-item
-            const isMessageSwap = 
+            // Only scroll when a new message is sent (not when loading older messages)
+            // New messages are swapped into .messages-container with beforeend
+            // Load more swaps into #message-list with afterbegin
+            const isNewMessage = 
                 target.classList.contains('messages-container') ||
-                target.id === 'message-list' ||
-                target.classList.contains('message-item') ||
-                (target.closest && (
-                    target.closest('.messages-container') || 
-                    target.closest('#message-list')
-                ));
+                target.classList.contains('message-item');
 
-            if (isMessageSwap) {
+            // Don't scroll if this is loading older messages (afterbegin swap to #message-list)
+            const isLoadMore = 
+                target.id === 'message-list' && 
+                trigger && 
+                trigger.getAttribute('hx-swap') === 'afterbegin';
+
+            if (isNewMessage && !isLoadMore) {
                 // Use requestAnimationFrame for smoother scrolling
                 requestAnimationFrame(() => {
                     setTimeout(scrollToBottom, 50);

@@ -22,10 +22,7 @@ This is a messaging startup project built with Django 3.2.8 and HTMX. The applic
 - [x] Conversation view and template
 - [x] Message sending functionality
 - [x] Authentication/authorization
-
-### ❌ What Needs to Be Built
-
-- [ ] HTMX-powered dynamic interactions
+- [x] HTMX-powered dynamic interactions
 
 ## Step-by-Step Implementation Plan
 
@@ -87,10 +84,10 @@ This is a messaging startup project built with Django 3.2.8 and HTMX. The applic
 
 ### Step 7: Styling and Polish
 
-- [ ] Style message bubbles
-- [ ] Improve layout and spacing
-- [ ] Add responsive design considerations
-- [ ] Enhance visual hierarchy
+- [x] Style message bubbles
+- [x] Improve layout and spacing
+- [x] Add responsive design considerations
+- [x] Enhance visual hierarchy
 
 ---
 

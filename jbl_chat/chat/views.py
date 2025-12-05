@@ -1,10 +1,15 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404, redirect
+from django.template.loader import render_to_string
 from django.core.paginator import Paginator
+from django.http import HttpResponse
 from django.db.models import Q
+from django.urls import reverse
+from django.conf import settings
+from django_htmx.http import HttpResponseClientRefresh
 
-from .forms import UserSearchForm, MessageForm
+from .forms import MessageForm
 from .models import Message, Conversation
 
 
@@ -22,16 +27,10 @@ def user_list(request):
         request.GET.get("search", "").strip() or request.POST.get("search", "").strip()
     )
 
-    # Get page number from POST data (for pagination) or default to 1
-    if request.method == "POST" and request.htmx:
-        try:
-            page_number = int(request.POST.get("page", 1))
-        except (ValueError, TypeError):
-            page_number = 1
-    else:
-        page_number = 1
+    # Get page number from request
+    page_number = _get_page_number(request)
 
-    paginate_by = 5
+    paginate_by = settings.PAGINATE_BY_USERS
 
     # Get all users excluding the current user
     users = User.objects.exclude(id=request.user.id).order_by("username")
@@ -58,8 +57,8 @@ def conversations(request):
     """Returns the chats list partial for HTMX requests, full page for non-HTMX requests"""
     # Get search query from GET
     search_query = request.GET.get("search", "").strip()
-    page_number = request.GET.get("page", 1)
-    paginate_by = 5
+    page_number = _get_page_number(request)
+    paginate_by = settings.PAGINATE_BY_CONVERSATIONS
     current_user = request.user
 
     # Get all conversations for the current user, ordered by last message timestamp
@@ -121,15 +120,9 @@ def archive_conversation(request, username):
     conversation, _ = Conversation.get_or_create_conversation(request.user, other_user)
     conversation.archive(request.user)
 
-    # Check if request came from conversation page (archive-form) or chats list
-    # django-htmx provides target as the element ID (without #)
-    hx_target = getattr(request.htmx, "target", "") if request.htmx else ""
-    # Also check the header directly as fallback
-    if not hx_target:
-        hx_target = request.headers.get("HX-Target", "").lstrip("#")
+    hx_target = request.htmx.target if request.htmx else ""
 
     if hx_target == "archive-form":
-        # Return updated archive button for conversation page
         context = {
             "other_user": other_user,
             "is_archived": conversation.is_archived_by(request.user),
@@ -154,15 +147,9 @@ def unarchive_conversation(request, username):
     )
     conversation.unarchive(request.user)
 
-    # Check if request came from conversation page (archive-form) or chats list
-    # django-htmx provides target as the element ID (without #)
-    hx_target = getattr(request.htmx, "target", "") if request.htmx else ""
-    # Also check the header directly as fallback
-    if not hx_target:
-        hx_target = request.headers.get("HX-Target", "").lstrip("#")
+    hx_target = request.htmx.target if request.htmx else ""
 
     if hx_target == "archive-form":
-        # Return updated archive button for conversation page
         context = {
             "other_user": other_user,
             "is_archived": conversation.is_archived_by(request.user),
@@ -201,7 +188,7 @@ def _get_conversation_context(request, other_user, page_number=1):
 
     # Get paginated messages
     queryset = _get_queryset(request, other_user)
-    paginate_by = 2
+    paginate_by = settings.PAGINATE_BY_MESSAGES
     paginator = Paginator(queryset, paginate_by)
     page_obj = paginator.get_page(page_number)
 
@@ -247,8 +234,7 @@ def load_more_messages(request, username):
     page_number = _get_page_number(request)
 
     if page_number <= 1:
-        # If page is 1 or less, redirect to conversation view
-        return redirect("chat:conversation", username=username)
+        return HttpResponseClientRefresh(reverse("chat:conversation", args=[username]))
 
     context = _get_conversation_context(request, other_user, page_number)
     return render(request, "chat/partials/_load_more_messages.html", context)
@@ -285,13 +271,13 @@ def send_message(request, username):
                 "has_older_messages": False,
                 "next_page": None,
             }
-            messages_html = render(
-                request, "chat/partials/_messages.html", context
-            ).content.decode("utf-8")
-            from django.http import HttpResponse
+            # Use render_to_string for cleaner out-of-band swap
+            messages_html = render_to_string(
+                "chat/partials/_messages.html", context, request=request
+            )
 
+            # Return out-of-band swap response
             return HttpResponse(
-                f'<div style="display:none;"></div>'
                 f'<div id="message-list" hx-swap-oob="innerHTML">{messages_html}</div>'
             )
         else:

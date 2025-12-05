@@ -142,3 +142,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = os.getenv("LOGIN_URL", "/login/")
 LOGIN_REDIRECT_URL = os.getenv("LOGIN_REDIRECT_URL", "/")
 LOGOUT_REDIRECT_URL = os.getenv("LOGOUT_REDIRECT_URL", "/login/")
+
+# Pagination settings
+PAGINATE_BY_CONVERSATIONS = int(os.getenv("PAGINATE_BY_CONVERSATIONS", 10))
+PAGINATE_BY_MESSAGES = int(os.getenv("PAGINATE_BY_MESSAGES", 5))
+PAGINATE_BY_USERS = int(os.getenv("PAGINATE_BY_USERS", 5))
