@@ -104,3 +104,29 @@
 #contacts-list-container {
   scroll-behavior: smooth;
 }
+
+/* SSE connection indicator - hidden by default */
+.sse-indicator-hidden {
+  display: none;
+}
+
+/* SSE state management - all states hidden by default */
+.sse-state-hidden {
+  display: none !important;
+}
+
+/* SSE spinner - smaller size */
+.sse-spinner {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+/* SSE error indicator - hidden by default */
+.sse-error-hidden {
+  display: none;
+}
+
+/* SSE keepalive container - hidden */
+.sse-keepalive-hidden {
+  display: none;
+}

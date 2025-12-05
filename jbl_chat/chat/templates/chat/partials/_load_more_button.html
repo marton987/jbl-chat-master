@@ -1,7 +1,8 @@
 {% if has_older_messages %}
   <button class="btn btn-outline-primary btn-sm load-more-trigger"
+          data-action="load-more-messages"
           hx-get="{% url 'chat:load_more_messages' other_user.username %}?page={{ next_page }}"
-          hx-target="#message-list"
+          hx-target=".messages-container"
           hx-swap="afterbegin"
           hx-indicator=".load-more-indicator">
     <span class="load-more-indicator htmx-indicator spinner-border spinner-border-sm me-2"
@@ -13,4 +14,3 @@
 {% else %}
   <div class="text-muted small">No older messages</div>
 {% endif %}
-

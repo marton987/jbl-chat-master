@@ -12,7 +12,7 @@
                     <a href="{% url 'chat:home' %}" class="btn btn-secondary">Back to Chats</a>
                 </div>
             </div>
-            <!-- Messages container with HTMX for scroll-based pagination -->
+            <!-- Messages container with HTMX for scroll-based pagination and SSE for real-time updates -->
             <div id="message-list-container" class="mb-4">
                 <div id="message-list-indicator" class="text-center mb-3">
                     <div class="spinner-border spinner-border-sm text-primary htmx-indicator"
@@ -20,18 +20,69 @@
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
+                <!-- SSE connection status indicator -->
+                <div id="sse-status-indicator" class="text-center mb-2">
+                    <!-- Connected state -->
+                    <div id="sse-connected" class="sse-state sse-state-hidden">
+                        <small class="text-muted">
+                            <span class="badge bg-success" aria-label="Connected">Connected</span>
+                        </small>
+                    </div>
+                    <!-- Disconnected state -->
+                    <div id="sse-disconnected" class="sse-state sse-state-hidden">
+                        <small class="text-muted">
+                            <span class="badge bg-secondary">Disconnected</span>
+                        </small>
+                    </div>
+                    <!-- Connecting state -->
+                    <div id="sse-connecting" class="sse-state sse-state-hidden">
+                        <small class="text-muted">
+                            <span class="spinner-border spinner-border-sm text-primary sse-spinner"
+                                  role="status"
+                                  aria-label="Connecting"></span>
+                            <span class="ms-1">Connecting...</span>
+                        </small>
+                    </div>
+                    <!-- Error state -->
+                    <div id="sse-error-state" class="sse-state sse-state-hidden">
+                        <small class="text-danger">
+                            <span class="badge bg-danger">Connection Error</span>
+                        </small>
+                    </div>
+                </div>
+                <!-- SSE error indicator (detailed error message) -->
+                <div id="sse-error-indicator"
+                     class="alert alert-warning alert-dismissible fade show sse-error-hidden"
+                     role="alert">
+                    <strong>Connection issue:</strong> <span id="sse-error-message">Attempting to reconnect...</span>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close"></button>
+                </div>
                 <div id="message-scroll-container" class="message-scroll-container">
                     <div id="load-more-button-container"
                          class="text-center py-2 mb-3 load-more-container">
                         <!-- Load more button will be updated via out-of-band swaps -->
                     </div>
-                    <div id="message-list"
-                         hx-get="{% url 'chat:conversation' other_user.username %}"
-                         hx-trigger="load"
-                         hx-target="this"
-                         hx-swap="innerHTML"
-                         hx-indicator="#message-list-indicator">
-                        <!-- Messages will be loaded here via HTMX -->
+                    <!-- SSE connection for real-time message updates -->
+                    <!-- According to HTMX SSE docs: hx-ext="sse" and sse-connect must be on the same element -->
+                    <!-- Child elements with sse-swap will listen for events from this connection -->
+                    <div hx-ext="sse"
+                         sse-connect="{% url 'chat:stream_messages' other_user.username %}">
+                        <div id="message-list"
+                             hx-get="{% url 'chat:conversation' other_user.username %}"
+                             hx-trigger="load"
+                             hx-target="this"
+                             hx-swap="innerHTML"
+                             hx-indicator="#message-list-indicator">
+                            <!-- Messages will be loaded here via HTMX -->
+                            <!-- The sse-swap="message" listener is inside _messages.html partial -->
+                        </div>
+                        <!-- Listen for 'keepalive' events (hidden, just to keep connection alive) -->
+                        <div sse-swap="keepalive" class="sse-keepalive-hidden">
+                            <!-- Keepalive events are received here but not displayed -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -45,55 +96,83 @@
 {% endblock drawer %}
 {% block extra_js %}
     <script>
-        // Function to scroll message container to bottom
+        const scrollContainer = document.getElementById('message-scroll-container');
+        const messagesContainer = document.querySelector('.messages-container');
+        
+        // Sort messages by timestamp (needed for SSE messages that may arrive out of order)
+        function sortMessages() {
+            if (!messagesContainer) return;
+            
+            const messages = Array.from(messagesContainer.querySelectorAll('.message-item'));
+            if (messages.length < 2) return;
+            
+            // Sort by timestamp
+            messages.sort((a, b) => {
+                const tsA = parseFloat(a.getAttribute('data-timestamp'));
+                const tsB = parseFloat(b.getAttribute('data-timestamp'));
+                if (isNaN(tsA) || isNaN(tsB)) return 0;
+                return tsA - tsB;
+            });
+            
+            // Reorder in DOM
+            messages.forEach(msg => messagesContainer.appendChild(msg));
+        }
+        
+        // Scroll to bottom
         function scrollToBottom() {
-            const scrollContainer = document.getElementById('message-scroll-container');
             if (scrollContainer) {
                 scrollContainer.scrollTop = scrollContainer.scrollHeight;
             }
         }
-
-        // Listen for HTMX swaps to scroll message container
-        document.body.addEventListener('htmx:afterSwap', function(event) {
-            const target = event.detail.target;
-            const trigger = event.detail.elt;
-            if (!target) return;
-
-            // Only scroll when a new message is sent (not when loading older messages)
-            // New messages are swapped into .messages-container with beforeend
-            // Load more swaps into #message-list with afterbegin
-            const isNewMessage = 
-                target.classList.contains('messages-container') ||
-                target.classList.contains('message-item');
-
-            // Don't scroll if this is loading older messages (afterbegin swap to #message-list)
-            const isLoadMore = 
-                target.id === 'message-list' && 
-                trigger && 
-                trigger.getAttribute('hx-swap') === 'afterbegin';
-
-            if (isNewMessage && !isLoadMore) {
-                // Use requestAnimationFrame for smoother scrolling
+        
+        // Handle message form submission
+        function handleMessageFormSubmit(event) {
+            if (event.detail.successful) {
+                event.target.reset();
+                // Wait for DOM update before scrolling
                 requestAnimationFrame(() => {
-                    setTimeout(scrollToBottom, 50);
+                    requestAnimationFrame(() => {
+                        scrollToBottom();
+                    });
                 });
             }
+        }
+        
+        // Scroll to bottom on initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                sortMessages();
+                scrollToBottom();
+            }, 200);
         });
-
-        // Listen for out-of-band swaps (for first message case)
-        document.body.addEventListener('htmx:oobAfterSwap', function(event) {
-            const target = event.detail.target;
-            if (target && target.id === 'message-list') {
-                requestAnimationFrame(() => {
-                    setTimeout(scrollToBottom, 100);
-                });
-            }
+        
+        // SSE state management
+        function showSSEState(state) {
+            ['connected', 'disconnected', 'connecting', 'error-state'].forEach(s => {
+                const el = document.getElementById(`sse-${s}`);
+                if (el) el.classList.toggle('sse-state-hidden', s !== state);
+            });
+        }
+        
+        showSSEState('connecting');
+        
+        document.body.addEventListener('htmx:sseOpen', () => {
+            showSSEState('connected');
+            document.getElementById('sse-error-indicator')?.classList.add('sse-error-hidden');
         });
-
-        // Also scroll on initial page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Wait a bit for HTMX to load initial messages
-            setTimeout(scrollToBottom, 300);
+        
+        document.body.addEventListener('htmx:sseClose', () => {
+            showSSEState('disconnected');
+            setTimeout(() => {
+                if (document.getElementById('sse-connected')?.classList.contains('sse-state-hidden')) {
+                    showSSEState('connecting');
+                }
+            }, 500);
+        });
+        
+        document.body.addEventListener('htmx:sseError', () => {
+            showSSEState('error-state');
+            setTimeout(() => showSSEState('connecting'), 1000);
         });
     </script>
 {% endblock extra_js %}

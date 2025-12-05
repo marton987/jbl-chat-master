@@ -75,10 +75,10 @@ This is a messaging startup project built with Django 3.2.8 and HTMX. The applic
 
 ### Step 6: Enhance HTMX Interactions
 
-- [ ] Add polling for new messages
-- [ ] Improve user experience with loading indicators
-- [ ] Add smooth scrolling to latest message
-- [ ] Handle errors gracefully
+- [x] Add SSE (Server-Sent Events) for real-time message updates (replaces polling)
+- [x] Improve user experience with loading indicators
+- [x] Add smooth scrolling to latest message
+- [x] Handle errors gracefully
 
 ---
 
@@ -108,23 +108,57 @@ The application will be available at `http://localhost:8000`
 ```
 jbl-chat/
 ├── jbl_chat/
-│   ├── chat/
-│   │   ├── models.py          # Message model
-│   │   ├── views.py           # All views (user_list, conversation, send_message)
-│   │   ├── urls.py            # App URL patterns
-│   │   ├── templates/chat/    # HTML templates
-│   │   │   ├── base.html      # Base template (already exists)
-│   │   │   ├── home.html      # Home page
-│   │   │   ├── user_list.html # User list (to be created)
-│   │   │   ├── conversation.html # Conversation view (to be created)
-│   │   │   └── message_list.html  # Message list partial (to be created)
-│   │   └── static/chat/css/   # Custom CSS
-│   └── jbl_chat/
-│       ├── settings.py        # Django settings
-│       └── urls.py            # Main URL configuration
+│   ├── chat/                  # Main chat application
+│   │   ├── models.py          # Message and Conversation models
+│   │   ├── views.py           # All views (home, user_list, conversation, send_message, etc.)
+│   │   ├── urls.py            # Chat app URL patterns
+│   │   ├── forms.py           # Message form
+│   │   ├── admin.py           # Django admin configuration
+│   │   ├── migrations/        # Database migrations
+│   │   ├── templates/chat/    # Chat app templates
+│   │   │   ├── home.html      # Home page with user list
+│   │   │   ├── conversation.html # Conversation view
+│   │   │   └── partials/      # HTMX partial templates
+│   │   │       ├── _messages.html
+│   │   │       ├── _single_message.html
+│   │   │       ├── _message_form.html
+│   │   │       ├── _user_list.html
+│   │   │       ├── _user_list_pagination.html
+│   │   │       ├── _load_more_button.html
+│   │   │       ├── _load_more_messages.html
+│   │   │       ├── _chats_list.html
+│   │   │       ├── _contacts_drawer.html
+│   │   │       └── _archive_button.html
+│   │   ├── static/chat/css/   # Custom CSS
+│   │   │   └── custom.css
+│   │   └── tests/             # Test files
+│   ├── core/                  # Core app (authentication)
+│   │   ├── views.py           # Login/logout views
+│   │   ├── urls.py            # Core app URL patterns
+│   │   └── templates/core/    # Authentication templates
+│   │       ├── login.html
+│   │       └── partials/
+│   │           └── _login_form.html
+│   ├── jbl_chat/              # Django project settings
+│   │   ├── settings.py        # Django settings
+│   │   ├── urls.py            # Main URL configuration
+│   │   ├── wsgi.py            # WSGI configuration
+│   │   └── asgi.py            # ASGI configuration
+│   ├── templates/             # Root-level templates
+│   │   ├── base.html          # Base template with HTMX and Bootstrap
+│   │   └── partials/          # Shared partial templates
+│   │       ├── _messages.html
+│   │       ├── _nav_user.html
+│   │       └── _pagination.html
+│   ├── static/                # Root-level static files
+│   │   ├── favicon.png
+│   │   └── favicon.svg
+│   ├── db.sqlite3             # SQLite database (development)
+│   └── manage.py              # Django management script
 ├── requirements.txt           # Python dependencies
 ├── Dockerfile                 # Docker configuration
 ├── docker-compose.yml         # Docker Compose configuration
+├── pyproject.toml             # Python project configuration
 ├── ASSIGNMENT.md              # Original assignment requirements
 └── README.md                  # This file
 ```

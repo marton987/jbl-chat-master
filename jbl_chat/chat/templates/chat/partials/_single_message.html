@@ -1,4 +1,5 @@
-<div class="message-item mb-3 {% if message.sender == current_user %}message-sent{% else %}message-received{% endif %}">
+<div class="message-item mb-3 {% if message.sender == current_user %}message-sent{% else %}message-received{% endif %}"
+     data-timestamp="{{ message.timestamp|date:'U' }}">
   <div class="d-flex {% if message.sender == current_user %}justify-content-end{% else %}justify-content-start{% endif %}">
     <div class="message-bubble {% if message.sender == current_user %}bg-primary text-white{% else %}bg-light border{% endif %} p-3 rounded-3 shadow-sm">
       <div class="message-header mb-2">

@@ -29,4 +29,9 @@ urlpatterns = [
         views.unarchive_conversation,
         name="unarchive_conversation",
     ),
+    path(
+        "chat/<str:username>/stream/",
+        views.stream_messages,
+        name="stream_messages",
+    ),
 ]
