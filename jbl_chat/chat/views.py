@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.urls import reverse
 from django.conf import settings
-from django_htmx.http import HttpResponseClientRefresh
+from django_htmx.http import HttpResponseClientRedirect
 from datetime import timedelta
 import time
 import logging
@@ -237,7 +237,7 @@ def load_more_messages(request, username):
     page_number = get_page_number(request)
 
     if page_number <= 1:
-        return HttpResponseClientRefresh(reverse("chat:conversation", args=[username]))
+        return HttpResponseClientRedirect(reverse("chat:conversation", args=[username]))
 
     context = _get_conversation_context(request, other_user, page_number)
     return render(request, "chat/partials/_load_more_messages.html", context)
