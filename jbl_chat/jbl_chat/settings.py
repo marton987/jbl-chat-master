@@ -35,6 +35,11 @@ DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "yes")
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,0.0.0.0,127.0.0.1").split(",")
 
+# CSRF trusted origins for HTTPS requests (required for Django 4.0+)
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    "CSRF_TRUSTED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000"
+).split(",")
+
 
 # Application definition
 
@@ -54,6 +59,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -87,10 +93,18 @@ WSGI_APPLICATION = "jbl_chat.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Use mounted volume on Fly.io if available, otherwise use BASE_DIR
+if os.path.exists("/data"):
+    # Running on Fly.io with mounted volume
+    db_path = Path("/data") / os.getenv("DB_NAME", "db.sqlite3")
+else:
+    # Local development
+    db_path = BASE_DIR / os.getenv("DB_NAME", "db.sqlite3")
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / os.getenv("DB_NAME", "db.sqlite3"),
+        "NAME": str(db_path),
     }
 }
 
@@ -135,6 +149,9 @@ STATIC_ROOT = os.getenv("STATIC_ROOT") or str(BASE_DIR / "staticfiles")
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+# WhiteNoise configuration for serving static files in production
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

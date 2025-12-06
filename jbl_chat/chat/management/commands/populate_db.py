@@ -3,7 +3,7 @@ Django management command to populate the database with users.
 
 Usage:
     python manage.py populate_db --admin                    # Create admin/admin superuser
-    python manage.py populate_db --users 10                  # Create 10 regular users (user_1/user_1, etc.)
+    python manage.py populate_db --users 10                  # Create 10 regular users (user_01/user_01, etc.)
     python manage.py populate_db --admin --users 10         # Create both admin and 10 users
 """
 
@@ -24,7 +24,7 @@ class Command(BaseCommand):
             "--users",
             type=int,
             default=0,
-            help="Number of regular users to create (format: user_N/user_N)",
+            help="Number of regular users to create (format: user_01/user_01, user_02/user_02, etc.)",
         )
 
     def handle(self, *args, **options):
@@ -70,13 +70,13 @@ class Command(BaseCommand):
         )
 
     def create_regular_users(self, num_users):
-        """Create N regular users with format user_N/user_N"""
+        """Create N regular users with format user_01/user_01, user_02/user_02, etc."""
         created_count = 0
         skipped_count = 0
 
         for i in range(1, num_users + 1):
-            username = f"user_{i}"
-            password = f"user_{i}"
+            username = f"user_{i:02d}"
+            password = f"user_{i:02d}"
 
             if User.objects.filter(username=username).exists():
                 self.stdout.write(
@@ -85,11 +85,12 @@ class Command(BaseCommand):
                 skipped_count += 1
                 continue
 
-            User.objects.create_user(
+            user = User.objects.create_user(
                 username=username,
-                email=f"user_{i}@example.com",
-                password=password,
+                email=f"user_{i:02d}@example.com",
             )
+            user.set_password(password)
+            user.save()
             created_count += 1
             self.stdout.write(
                 self.style.SUCCESS(

@@ -3,7 +3,8 @@ version: '3.7'
 services:
   web:
     build: .
-    command: python jbl_chat/manage.py runserver 0.0.0.0:8000
+    working_dir: /code/jbl_chat
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
     ports:
