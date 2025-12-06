@@ -14,11 +14,8 @@
             </div>
             <!-- Messages container with HTMX for scroll-based pagination and SSE for real-time updates -->
             <div id="message-list-container" class="mb-4">
-                <div id="message-list-indicator" class="text-center mb-3">
-                    <div class="spinner-border spinner-border-sm text-primary htmx-indicator"
-                         role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
+                <div class="text-center mb-3">
+                    {% include "chat/partials/_htmx_indicator.html" with indicator_id="message-list-indicator" size="sm" hidden=False %}
                 </div>
                 <!-- SSE connection status indicator -->
                 <div id="sse-status-indicator" class="text-center mb-2">
@@ -64,20 +61,18 @@
                     <div id="load-more-button-container"
                          class="text-center py-2 mb-3 load-more-container">
                         <!-- Load more button will be updated via out-of-band swaps -->
+                        {% if has_older_messages %}
+                            {% include "chat/partials/_load_more_button.html" %}
+                        {% endif %}
                     </div>
                     <!-- SSE connection for real-time message updates -->
                     <!-- According to HTMX SSE docs: hx-ext="sse" and sse-connect must be on the same element -->
                     <!-- Child elements with sse-swap will listen for events from this connection -->
                     <div hx-ext="sse"
                          sse-connect="{% url 'chat:stream_messages' other_user.username %}">
-                        <div id="message-list"
-                             hx-get="{% url 'chat:conversation' other_user.username %}"
-                             hx-trigger="load"
-                             hx-target="this"
-                             hx-swap="innerHTML"
-                             hx-indicator="#message-list-indicator">
-                            <!-- Messages will be loaded here via HTMX -->
-                            <!-- The sse-swap="message" listener is inside _messages.html partial -->
+                        <div id="message-list">
+                            <!-- Include messages on initial page load -->
+                            {% include "chat/partials/_messages.html" %}
                         </div>
                         <!-- Listen for 'keepalive' events (hidden, just to keep connection alive) -->
                         <div sse-swap="keepalive" class="sse-keepalive-hidden">
@@ -127,11 +122,19 @@
         
         // Handle message form submission
         function handleMessageFormSubmit(event) {
-            if (event.detail.successful) {
+            // Check if request was successful (status 200-299)
+            const status = event.detail.xhr?.status || 0;
+            if (status >= 200 && status < 300) {
                 event.target.reset();
+                // Remove "No messages yet" alert if it exists
+                const alert = document.querySelector('.messages-container .alert-info');
+                if (alert) {
+                    alert.remove();
+                }
                 // Wait for DOM update before scrolling
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
+                        sortMessages();
                         scrollToBottom();
                     });
                 });

@@ -1,30 +1,61 @@
-/* Search indicator - hide icon and show spinner during search */
-#search-indicator.htmx-request .bi-search {
+/* ============================================
+   HTMX Loading Indicators - Consolidated Pattern
+   ============================================ */
+
+/* Generic pattern: Show spinner when parent has htmx-request class */
+.htmx-indicator {
+  display: none;
+}
+
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  display: inline-block !important;
+}
+
+/* Generic pattern: Hide content and show spinner during HTMX requests */
+.htmx-request .bi-search,
+.htmx-request .bi-send,
+.htmx-request #contacts-search-icon {
   display: none !important;
 }
 
-#search-indicator.htmx-request .spinner-border {
-  display: inline-block !important;
+/* Generic pattern: Disable interactions during HTMX requests */
+/* Note: Applied selectively to buttons/forms, not all elements */
+.load-more-trigger.htmx-request,
+button.htmx-request:not(.htmx-indicator) {
+  pointer-events: none;
+  opacity: 0.7;
 }
 
-/* Hide user list during search */
-#user-list-container.htmx-request #user-list {
+/* Indicators should always be visible and interactive */
+.htmx-indicator,
+.htmx-request .htmx-indicator {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+/* ============================================
+   Container States During HTMX Requests
+   ============================================ */
+
+/* Hide/fade content during loading (applied to parent containers) */
+.htmx-request ~ *,
+.htmx-request > *:not(.htmx-indicator) {
   opacity: 0.5;
   pointer-events: none;
 }
 
-/* User list indicator - show spinner during pagination/user loading */
-#user-list-indicator.htmx-request .spinner-border {
-  display: inline-block !important;
-}
-
-/* Hide user list during pagination/user loading */
-#user-list-indicator.htmx-request ~ #user-list {
+/* Specific container patterns */
+#user-list-container.htmx-request #user-list,
+#contacts-list-container.htmx-request #contacts-list {
   opacity: 0.5;
   pointer-events: none;
 }
 
-/* Message scroll container - fixed height with scroll */
+/* ============================================
+   Message Styling
+   ============================================ */
+
 .message-scroll-container {
   max-height: 600px;
   overflow-y: auto;
@@ -36,97 +67,54 @@
   scroll-behavior: smooth;
 }
 
-/* Message list indicator - show spinner during loading */
-#message-list-indicator.htmx-request .spinner-border {
-  display: inline-block !important;
+.message-bubble {
+  max-width: 70%;
 }
 
-/* Load more button indicator - show spinner during request */
-.load-more-trigger.htmx-request .htmx-indicator {
-  display: inline-block !important;
-}
-
-/* Disable load more button during request */
-.load-more-trigger.htmx-request {
-  pointer-events: none;
-  opacity: 0.7;
-}
-
-/* Load more button container styling */
 .load-more-container {
   padding: 0.75rem 0;
   margin-bottom: 1rem;
 }
 
-/* Message bubble max width */
-.message-bubble {
-  max-width: 70%;
-}
+/* ============================================
+   Form Indicators
+   ============================================ */
 
-/* Message form indicator - show spinner during request */
-#message-form-indicator.htmx-request {
-  display: inline-block !important;
-}
-
-/* Hide icon and text when indicator is active */
-#message-form-indicator.htmx-request ~ i,
-#message-form-indicator.htmx-request ~ span:not(#message-form-indicator) {
+/* Hide default button content when form is submitting */
+#message-form.htmx-request .send-text,
+#message-form.htmx-request .bi-send {
   display: none !important;
 }
 
-/* Contacts drawer styles */
+/* Hide default button text when load more button is loading */
+.load-more-trigger.htmx-request .load-more-text {
+  display: none !important;
+}
+
+/* ============================================
+   Contacts Drawer
+   ============================================ */
+
 #contactsDrawer .offcanvas-body {
   padding: 0;
 }
 
-/* Contacts search indicator - hide icon and show spinner during search */
-#contacts-search-icon.htmx-request {
-  display: none !important;
-}
-
-#contacts-search-spinner.htmx-request {
-  display: inline-block !important;
-}
-
-/* Contacts list indicator - show spinner during loading */
-#contacts-list-indicator.htmx-request .spinner-border {
-  display: inline-block !important;
-}
-
-/* Hide contacts list during loading - minimal CSS needed for HTMX parent selector */
-/* Bootstrap utilities (.opacity-50, .pe-none) can't be applied via parent selector */
-#contacts-list-container.htmx-request #contacts-list {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* Note: Hover and active states are handled by Bootstrap's .list-group-item-action class */
 #contacts-list-container {
   scroll-behavior: smooth;
 }
 
-/* SSE connection indicator - hidden by default */
-.sse-indicator-hidden {
-  display: none;
-}
+/* ============================================
+   SSE (Server-Sent Events) Styling
+   ============================================ */
 
-/* SSE state management - all states hidden by default */
-.sse-state-hidden {
+.sse-state-hidden,
+.sse-error-hidden,
+.sse-keepalive-hidden,
+.sse-indicator-hidden {
   display: none !important;
 }
 
-/* SSE spinner - smaller size */
 .sse-spinner {
   width: 0.8rem;
   height: 0.8rem;
-}
-
-/* SSE error indicator - hidden by default */
-.sse-error-hidden {
-  display: none;
-}
-
-/* SSE keepalive container - hidden */
-.sse-keepalive-hidden {
-  display: none;
 }

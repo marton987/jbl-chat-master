@@ -12,32 +12,12 @@
       <h1 class="mb-4">Chats</h1>
       <!-- Search form -->
       <div class="mb-3">
-        <form hx-get="{% url 'chat:conversations' %}"
-              hx-target="#chats-list"
-              hx-swap="innerHTML"
-              hx-indicator="#chats-list-indicator"
-              hx-trigger="input changed delay:300ms, search"
-              id="chats-search-form">
-          {% csrf_token %}
-          <div class="input-group">
-            <span class="input-group-text bg-white">
-              <i class="bi bi-search"></i>
-            </span>
-            <input type="text"
-                   class="form-control"
-                   name="search"
-                   placeholder="Search conversations..."
-                   value="{{ search_query|default:'' }}"
-                   autocomplete="off">
-          </div>
-        </form>
+        {% include "chat/partials/_search_form.html" with form_id="chats-search-form" url_name="chat:conversations" target_id="chats-list" indicator_id="chats-list-indicator" placeholder="Search conversations..." search_query=search_query|default:'' %}
       </div>
       <!-- Chats List Container (will be updated via HTMX) -->
       <div id="chats-list-container">
-        <div id="chats-list-indicator" class="text-center my-3">
-          <span class="spinner-border spinner-border-sm text-primary d-none"
-                role="status"
-                aria-hidden="true"></span>
+        <div class="text-center my-3">
+          {% include "chat/partials/_htmx_indicator.html" with indicator_id="chats-list-indicator" size="sm" hidden=False %}
         </div>
         <div id="chats-list">
           {% if chats %}

@@ -1,14 +1,31 @@
-<div class="message-item mb-3 {% if message.sender == current_user %}message-sent{% else %}message-received{% endif %}"
-     data-timestamp="{{ message.timestamp|date:'U' }}">
-  <div class="d-flex {% if message.sender == current_user %}justify-content-end{% else %}justify-content-start{% endif %}">
-    <div class="message-bubble {% if message.sender == current_user %}bg-primary text-white{% else %}bg-light border{% endif %} p-3 rounded-3 shadow-sm">
-      <div class="message-header mb-2">
-        <small class="{% if message.sender == current_user %}text-white-50{% else %}text-muted{% endif %}">
-          <strong>@{{ message.sender.username }}</strong>
-          <span class="ms-2">{{ message.timestamp|date:"M d, Y H:i" }}</span>
-        </small>
+{% if message.sender == current_user %}
+  <div class="message-item mb-3 message-sent"
+       data-timestamp="{{ message.timestamp|date:'U' }}">
+    <div class="d-flex justify-content-end">
+      <div class="message-bubble bg-primary text-white p-3 rounded-3 shadow-sm">
+        <div class="message-header mb-2">
+          <small class="text-white-50">
+            <strong>@{{ message.sender.username }}</strong>
+            <span class="ms-2">{{ message.timestamp|date:"M d, Y H:i" }}</span>
+          </small>
+        </div>
+        <div class="message-content">{{ message.content|linebreaks }}</div>
       </div>
-      <div class="message-content">{{ message.content|linebreaks }}</div>
     </div>
   </div>
-</div>
+{% else %}
+  <div class="message-item mb-3 message-received"
+       data-timestamp="{{ message.timestamp|date:'U' }}">
+    <div class="d-flex justify-content-start">
+      <div class="message-bubble bg-light border p-3 rounded-3 shadow-sm">
+        <div class="message-header mb-2">
+          <small class="text-muted">
+            <strong>@{{ message.sender.username }}</strong>
+            <span class="ms-2">{{ message.timestamp|date:"M d, Y H:i" }}</span>
+          </small>
+        </div>
+        <div class="message-content">{{ message.content|linebreaks }}</div>
+      </div>
+    </div>
+  </div>
+{% endif %}

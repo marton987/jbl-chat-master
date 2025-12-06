@@ -1,0 +1,39 @@
+{% comment %}
+  Reusable HTMX search form component
+  
+  Usage:
+    {% include "chat/partials/_search_form.html" with 
+        form_id="my-search-form"
+        url_name="chat:search"
+        target_id="results"
+        indicator_id="search-indicator"
+        placeholder="Search..."
+        search_query=search_query|default:'' %}
+  
+  Parameters:
+    form_id: ID for the form element (required)
+    url_name: URL name for the search endpoint (required)
+    target_id: ID of element to update with results (required)
+    indicator_id: ID of loading indicator element (required)
+    placeholder: Placeholder text for input (default: "Search...")
+    search_query: Current search query value (optional)
+    trigger_delay: Delay in ms for input trigger (default: 300)
+{% endcomment %}
+<form id="{{ form_id }}"
+      hx-get="{% url url_name %}"
+      hx-target="#{{ target_id }}"
+      hx-swap="innerHTML"
+      hx-indicator="#{{ indicator_id }}"
+      hx-trigger="input changed delay:{{ trigger_delay|default:300 }}ms, search">
+  <div class="input-group">
+    <span class="input-group-text bg-white">
+      <i class="bi bi-search"></i>
+    </span>
+    <input type="text"
+           class="form-control"
+           name="search"
+           placeholder="{{ placeholder|default:'Search...' }}"
+           value="{{ search_query|default:'' }}"
+           autocomplete="off">
+  </div>
+</form>

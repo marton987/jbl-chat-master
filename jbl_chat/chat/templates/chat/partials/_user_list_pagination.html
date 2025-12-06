@@ -3,12 +3,15 @@
     <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}
         <li class="page-item">
-          <button class="page-link"
-                  hx-post="{% url 'chat:user_list' %}"
-                  hx-vals='{"page": {{ page_obj.previous_page_number }}{% if search_query %}, "search": "{{ search_query }}"{% endif %}, "csrfmiddlewaretoken": "{{ csrf_token }}" }'
-                  hx-target="#contacts-list"
-                  hx-swap="innerHTML"
-                  hx-indicator="#contacts-list-indicator">Previous</button>
+          <form class="d-inline"
+                hx-post="{% url 'chat:user_list' %}"
+                hx-vals='{"page": {{ page_obj.previous_page_number }}{% if search_query %}, "search": "{{ search_query }}"{% endif %} }'
+                hx-target="#contacts-list"
+                hx-swap="innerHTML"
+                hx-indicator="#contacts-list-indicator">
+            {% csrf_token %}
+            <button type="submit" class="page-link">Previous</button>
+          </form>
         </li>
       {% else %}
         <li class="page-item disabled">
@@ -22,23 +25,29 @@
           </li>
         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
           <li class="page-item">
-            <button class="page-link"
-                    hx-post="{% url 'chat:user_list' %}"
-                    hx-vals='{"page": {{ num }}{% if search_query %}, "search": "{{ search_query }}"{% endif %}, "csrfmiddlewaretoken": "{{ csrf_token }}" }'
-                    hx-target="#contacts-list"
-                    hx-swap="innerHTML"
-                    hx-indicator="#contacts-list-indicator">{{ num }}</button>
+            <form class="d-inline"
+                  hx-post="{% url 'chat:user_list' %}"
+                  hx-vals='{"page": {{ num }}{% if search_query %}, "search": "{{ search_query }}"{% endif %} }'
+                  hx-target="#contacts-list"
+                  hx-swap="innerHTML"
+                  hx-indicator="#contacts-list-indicator">
+              {% csrf_token %}
+              <button type="submit" class="page-link">{{ num }}</button>
+            </form>
           </li>
         {% endif %}
       {% endfor %}
       {% if page_obj.has_next %}
         <li class="page-item">
-          <button class="page-link"
-                  hx-post="{% url 'chat:user_list' %}"
-                  hx-vals='{"page": {{ page_obj.next_page_number }}{% if search_query %}, "search": "{{ search_query }}"{% endif %}, "csrfmiddlewaretoken": "{{ csrf_token }}" }'
-                  hx-target="#contacts-list"
-                  hx-swap="innerHTML"
-                  hx-indicator="#contacts-list-indicator">Next</button>
+          <form class="d-inline"
+                hx-post="{% url 'chat:user_list' %}"
+                hx-vals='{"page": {{ page_obj.next_page_number }}{% if search_query %}, "search": "{{ search_query }}"{% endif %} }'
+                hx-target="#contacts-list"
+                hx-swap="innerHTML"
+                hx-indicator="#contacts-list-indicator">
+            {% csrf_token %}
+            <button type="submit" class="page-link">Next</button>
+          </form>
         </li>
       {% else %}
         <li class="page-item disabled">

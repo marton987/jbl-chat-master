@@ -11,11 +11,11 @@
     <button type="submit"
             class="btn btn-primary px-4 rounded-0 rounded-end d-flex gap-2 justify-content-center align-items-center">
       <span id="message-form-indicator"
-            class="d-none spinner-border text-white spinner-border-sm me-2"
-            role="status">
-        <span class="visually-hidden">Sending...</span>
-      </span>
-      <i class="bi bi-send"></i> <span>Send</span>
+            class="htmx-indicator spinner-border text-white spinner-border-sm me-2"
+            role="status"
+            aria-label="Sending message"></span>
+      <span class="htmx-indicator">Sending...</span>
+      <i class="bi bi-send" aria-hidden="true"></i> <span class="send-text">Send</span>
     </button>
   </div>
   {% if message_form.content.errors %}

@@ -1,0 +1,18 @@
+{% comment %}
+  Reusable HTMX loading indicator component
+  
+  Usage:
+    {% include "chat/partials/_htmx_indicator.html" with indicator_id="my-indicator" size="sm" %}
+  
+  Parameters:
+    indicator_id: ID for the indicator element (required)
+    size: Spinner size - "sm" (default) or empty for normal size
+    hidden: If true, indicator is hidden by default (default: false)
+{% endcomment %}
+<div id="{{ indicator_id }}"
+     class="text-center {% if hidden %}d-none{% endif %}">
+  <div class="spinner-border {% if size == 'sm' %}spinner-border-sm{% endif %} text-primary htmx-indicator me-2"
+       role="status"
+       aria-label="Loading"></div>
+  <span class="htmx-indicator">Loading...</span>
+</div>

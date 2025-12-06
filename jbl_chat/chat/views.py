@@ -1,22 +1,27 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404, redirect
-from django.template.loader import render_to_string
 from django.core.paginator import Paginator
-from django.http import HttpResponse, StreamingHttpResponse
 from django.db.models import Q
 from django.urls import reverse
 from django.conf import settings
 from django_htmx.http import HttpResponseClientRefresh
-from django.utils import timezone
 from datetime import timedelta
 import time
-import json
-import re
 import logging
 
 from .forms import MessageForm
 from .models import Message, Conversation
+from .utils import (
+    get_page_number,
+    is_sse_request,
+    get_initial_timestamp,
+    render_message_for_sse,
+    create_keepalive_event,
+    create_error_event,
+    get_new_messages,
+    create_sse_response,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +41,7 @@ def user_list(request):
     )
 
     # Get page number from request
-    page_number = _get_page_number(request)
+    page_number = get_page_number(request)
 
     paginate_by = settings.PAGINATE_BY_USERS
 
@@ -65,7 +70,7 @@ def conversations(request):
     """Returns the chats list partial for HTMX requests, full page for non-HTMX requests"""
     # Get search query from GET
     search_query = request.GET.get("search", "").strip()
-    page_number = _get_page_number(request)
+    page_number = get_page_number(request)
     paginate_by = settings.PAGINATE_BY_CONVERSATIONS
     current_user = request.user
 
@@ -168,16 +173,6 @@ def unarchive_conversation(request, username):
         return conversations(request)
 
 
-def _get_page_number(request):
-    """Extract page number from request"""
-    try:
-        if request.method == "POST":
-            return int(request.POST.get("page", 1))
-        return int(request.GET.get("page", 1))
-    except (ValueError, TypeError):
-        return 1
-
-
 def _get_queryset(request, other_user):
     """Get messages where current user is sender or receiver with selected user"""
     current_user = request.user
@@ -239,7 +234,7 @@ def load_more_messages(request, username):
         return redirect("chat:conversation", username=username)
 
     other_user = get_object_or_404(User, username=username)
-    page_number = _get_page_number(request)
+    page_number = get_page_number(request)
 
     if page_number <= 1:
         return HttpResponseClientRefresh(reverse("chat:conversation", args=[username]))
@@ -265,36 +260,12 @@ def send_message(request, username):
             content=form.cleaned_data["content"],
         )
 
-        # Check if this is the first message
-        queryset = _get_queryset(request, other_user)
-        total_messages = queryset.count()
-
-        if total_messages == 1:
-            # First message - need to replace the entire message-list to show messages-container
-            # Use out-of-band swap to replace #message-list with full messages
-            context = {
-                "messages": [message],
-                "current_user": request.user,
-                "other_user": other_user,
-                "has_older_messages": False,
-                "next_page": None,
-            }
-            # Use render_to_string for cleaner out-of-band swap
-            messages_html = render_to_string(
-                "chat/partials/_messages.html", context, request=request
-            )
-
-            # Return out-of-band swap response
-            return HttpResponse(
-                f'<div id="message-list" hx-swap-oob="innerHTML">{messages_html}</div>'
-            )
-        else:
-            # Subsequent messages - return single message to append
-            context = {
-                "message": message,
-                "current_user": request.user,
-            }
-            return render(request, "chat/partials/_single_message.html", context)
+        # Return single message to append
+        context = {
+            "message": message,
+            "current_user": request.user,
+        }
+        return render(request, "chat/partials/_single_message.html", context)
 
     # Form validation failed - return form with errors
     context = {
@@ -305,106 +276,17 @@ def send_message(request, username):
     return render(request, "chat/partials/_message_form.html", context, status=422)
 
 
-# ============================================================================
-# SSE Streaming Helper Functions
-# ============================================================================
-
-
-def _is_sse_request(request):
-    """Check if the request is for Server-Sent Events (SSE)"""
-    accept_header = request.META.get("HTTP_ACCEPT", "")
-    return request.htmx or "text/event-stream" in accept_header
-
-
-def _get_initial_timestamp(conversation):
-    """Get the initial timestamp to start streaming from"""
-    last_message = (
-        Message.objects.filter(conversation=conversation).order_by("-timestamp").first()
-    )
-    if last_message:
-        # Use timestamp minus 1 second to avoid missing messages created in the same second
-        return last_message.timestamp - timedelta(seconds=1)
-    else:
-        # No messages yet - start from a year ago to catch any existing messages
-        return timezone.now() - timedelta(days=365)
-
-
-def _clean_html_for_sse(html):
-    """Clean HTML for SSE format by removing newlines and extra whitespace"""
-    # Remove newlines and carriage returns
-    cleaned = html.replace("\n", " ").replace("\r", "").strip()
-    # Collapse multiple spaces into single space
-    return re.sub(r"\s+", " ", cleaned)
-
-
-def _render_message_for_sse(message, current_user, request):
-    """Render a message as HTML for SSE streaming"""
-    context = {
-        "message": message,
-        "current_user": current_user,
-    }
-    html = render_to_string(
-        "chat/partials/_single_message.html", context, request=request
-    )
-    return _clean_html_for_sse(html)
-
-
-def _create_keepalive_event():
-    """Create a keepalive SSE event to prevent connection timeout"""
-    html = '<div id="sse-keepalive" style="display:none;"></div>'
-    return f"event: keepalive\ndata: {html}\n\n"
-
-
-def _create_error_event(error_message, is_fatal=False):
-    """Create an error SSE event"""
-    alert_class = "alert-danger" if is_fatal else "alert-warning"
-    fade_class = "alert-dismissible fade show" if not is_fatal else ""
-    close_button = (
-        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>'
-        if not is_fatal
-        else ""
-    )
-    error_html = (
-        f'<div class="alert {alert_class} {fade_class}" role="alert">'
-        f"{'<strong>Connection Error:</strong> ' if is_fatal else '<small>'}"
-        f"{error_message}"
-        f"{'</small>' if not is_fatal else ''}"
-        f"{close_button}"
-        f"</div>"
-    )
-    cleaned_html = _clean_html_for_sse(error_html)
-    return f"event: message\ndata: {cleaned_html}\n\n"
-
-
-def _get_new_messages(conversation, last_timestamp, current_user):
-    """Query for new messages since the last timestamp, excluding current user's messages"""
-    return (
-        Message.objects.filter(conversation=conversation, timestamp__gt=last_timestamp)
-        .exclude(sender=current_user)  # Don't stream own messages (handled by form)
-        .order_by("timestamp")
-        .select_related("sender", "receiver")
-    )
-
-
-def _create_sse_response(event_stream):
-    """Create a StreamingHttpResponse with proper SSE headers"""
-    response = StreamingHttpResponse(event_stream(), content_type="text/event-stream")
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"  # Disable buffering for nginx
-    return response
-
-
 @login_required
 def stream_messages(request, username):
     """SSE endpoint to stream new messages for a conversation"""
     # Redirect non-SSE requests to the conversation page
-    if not _is_sse_request(request):
+    if not is_sse_request(request):
         return redirect("chat:conversation", username=username)
 
     other_user = get_object_or_404(User, username=username)
     current_user = request.user
     conversation, _ = Conversation.get_or_create_conversation(current_user, other_user)
-    last_timestamp = _get_initial_timestamp(conversation)
+    last_timestamp = get_initial_timestamp(conversation)
 
     def event_stream():
         """Generator function that yields SSE events"""
@@ -412,7 +294,7 @@ def stream_messages(request, username):
 
         try:
             # Send initial keepalive to establish connection
-            yield _create_keepalive_event()
+            yield create_keepalive_event()
 
             poll_count = 0
             while True:
@@ -422,14 +304,14 @@ def stream_messages(request, username):
 
                 try:
                     # Get new messages since last check
-                    new_messages = _get_new_messages(
+                    new_messages = get_new_messages(
                         conversation, last_timestamp, current_user
                     )
 
                     # Stream each new message in order
                     last_message_in_batch = None
                     for message in new_messages:
-                        message_html = _render_message_for_sse(
+                        message_html = render_message_for_sse(
                             message, current_user, request
                         )
                         yield f"event: message\ndata: {message_html}\n\n"
@@ -446,12 +328,12 @@ def stream_messages(request, username):
                     # Send keepalive every 30 seconds to prevent timeout
                     poll_count += 1
                     if poll_count % 30 == 0:
-                        yield _create_keepalive_event()
+                        yield create_keepalive_event()
 
                 except Exception as e:
                     # Non-fatal error - log and continue streaming
                     logger.error(f"Error in SSE stream: {str(e)}", exc_info=True)
-                    yield _create_error_event(
+                    yield create_error_event(
                         f"Connection issue: {str(e)}", is_fatal=False
                     )
 
@@ -464,6 +346,6 @@ def stream_messages(request, username):
         except Exception as e:
             # Fatal error - log and send error event
             logger.error(f"Fatal error in SSE stream: {str(e)}", exc_info=True)
-            yield _create_error_event(str(e), is_fatal=True)
+            yield create_error_event(str(e), is_fatal=True)
 
-    return _create_sse_response(event_stream)
+    return create_sse_response(event_stream)

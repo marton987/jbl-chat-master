@@ -25,15 +25,18 @@
           <span class="badge bg-primary rounded-pill">
             <i class="bi bi-chat-dots"></i>
           </span>
-          <button class="btn btn-sm btn-outline-secondary"
-                  hx-post="{% url 'chat:archive_conversation' chat.user.username %}"
-                  hx-target="#chats-list"
-                  hx-swap="innerHTML"
-                  hx-indicator="#chats-list-indicator"
-                  hx-vals='{"csrfmiddlewaretoken": "{{ csrf_token }}"}'
-                  title="Archive conversation">
-            <i class="bi bi-archive"></i>
-          </button>
+          <form class="d-inline"
+                hx-post="{% url 'chat:archive_conversation' chat.user.username %}"
+                hx-target="#chats-list"
+                hx-swap="innerHTML"
+                hx-indicator="#chats-list-indicator">
+            {% csrf_token %}
+            <button type="submit"
+                    class="btn btn-sm btn-outline-secondary"
+                    title="Archive conversation">
+              <i class="bi bi-archive"></i>
+            </button>
+          </form>
         </div>
       </div>
     {% endfor %}
